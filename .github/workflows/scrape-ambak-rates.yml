@@ -1,0 +1,36 @@
+# Daily job: replaces the old Windows Task Scheduler entry (which got
+# silently blocked by local antivirus) and Render's Cron Jobs (which have no
+# free plan). Runs on GitHub's own infrastructure instead — free and
+# unlimited for this repo since it's public. See backend_cat/app/
+# scrape_ambak_rates.py's module docstring for the Ambak ToS context this
+# scraper was built under.
+name: Scrape Ambak rates daily
+
+on:
+  schedule:
+    - cron: "30 0 * * *" # 00:30 UTC = 6:00 AM IST, matching the original local schedule
+  workflow_dispatch: {} # lets you trigger a run manually from the Actions tab, for testing
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend_cat
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -e .
+
+      - name: Install Playwright's Chromium browser
+        run: playwright install --with-deps chromium
+
+      - name: Run the scraper
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m app.scrape_ambak_rates

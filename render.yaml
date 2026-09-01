@@ -1,11 +1,19 @@
 services:
   # The FastAPI backend (backend_cat) — the API the Netlify frontend talks to.
+  #
+  # The daily Ambak scraper (app/scrape_ambak_rates.py) deliberately does NOT
+  # run here — it runs as a free GitHub Actions scheduled workflow instead
+  # (.github/workflows/scrape-ambak-rates.yml), since Render's Cron Jobs have
+  # no free plan and this repo is public (so GitHub Actions minutes are
+  # unlimited and free for it). That's also why Playwright/Chromium — only
+  # needed by the scraper — isn't installed here; this service never needs
+  # a headless browser.
   - type: web
     name: lender-match-engine-api
     runtime: python
     rootDir: backend_cat
     plan: free
-    buildCommand: "pip install -e . && playwright install --with-deps chromium"
+    buildCommand: "pip install -e ."
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     envVars:
@@ -15,26 +23,5 @@ services:
         sync: false
       - key: FIREBASE_SERVICE_ACCOUNT_PATH
         value: firebase-service-account.json
-      - key: PYTHON_VERSION
-        value: "3.12.7"
-
-  # Same daily job as the Windows Task Scheduler entry it replaces — see
-  # app/scrape_ambak_rates.py's module docstring for the Ambak ToS context
-  # this was built under. Runs on Render's own infrastructure, so it's no
-  # longer affected by anything on a local machine (antivirus, sleep, etc.).
-  # CONFIRMED: Render's Cron Jobs have no free plan (unlike the web service
-  # above) — "plan" is left unset here so Render's own UI prompts for a
-  # valid one (its cheapest paid tier) instead of guessing a name that
-  # might not match what's currently offered.
-  - type: cron
-    name: scrape-ambak-rates
-    runtime: python
-    rootDir: backend_cat
-    buildCommand: "pip install -e . && playwright install --with-deps chromium"
-    schedule: "30 0 * * *" # 00:30 UTC = 6:00 AM IST, matching the original local schedule
-    startCommand: "python -m app.scrape_ambak_rates"
-    envVars:
-      - key: DATABASE_URL
-        sync: false
       - key: PYTHON_VERSION
         value: "3.12.7"
