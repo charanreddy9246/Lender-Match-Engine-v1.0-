@@ -22,13 +22,14 @@ services:
   # app/scrape_ambak_rates.py's module docstring for the Ambak ToS context
   # this was built under. Runs on Render's own infrastructure, so it's no
   # longer affected by anything on a local machine (antivirus, sleep, etc.).
-  # NOTE: Render's Cron Jobs may require a paid plan — check your current
-  # Render plan/pricing before relying on this running for free.
+  # CONFIRMED: Render's Cron Jobs have no free plan (unlike the web service
+  # above) — "plan" is left unset here so Render's own UI prompts for a
+  # valid one (its cheapest paid tier) instead of guessing a name that
+  # might not match what's currently offered.
   - type: cron
     name: scrape-ambak-rates
     runtime: python
     rootDir: backend_cat
-    plan: free
     buildCommand: "pip install -e . && playwright install --with-deps chromium"
     schedule: "30 0 * * *" # 00:30 UTC = 6:00 AM IST, matching the original local schedule
     startCommand: "python -m app.scrape_ambak_rates"
