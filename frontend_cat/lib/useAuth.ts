@@ -14,11 +14,19 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!auth) {
+      setUser(null);
+      return;
+    }
     return onAuthStateChanged(auth, (u) => setUser(u));
   }, []);
 
   async function login(email: string, password: string) {
     setError(null);
+    if (!auth) {
+      setError("Admin login isn't set up for this deployment yet.");
+      return;
+    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch {
@@ -27,11 +35,12 @@ export function useAuth() {
   }
 
   async function logout() {
+    if (!auth) return;
     await signOut(auth);
   }
 
   async function getToken(): Promise<string | null> {
-    if (!auth.currentUser) return null;
+    if (!auth?.currentUser) return null;
     return auth.currentUser.getIdToken();
   }
 

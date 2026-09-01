@@ -15,8 +15,12 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Firebase config is optional — if it's not set (e.g. admin login isn't set up
+// yet for this deployment), skip initializing rather than crashing the build.
+const isConfigured = Boolean(firebaseConfig.apiKey);
+
 // Next.js can re-run this module during development (hot reload) — reuse the
 // existing app instead of re-initializing, which Firebase otherwise rejects.
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = isConfigured ? (getApps().length ? getApp() : initializeApp(firebaseConfig)) : null;
 
-export const auth = getAuth(app);
+export const auth = app ? getAuth(app) : null;
