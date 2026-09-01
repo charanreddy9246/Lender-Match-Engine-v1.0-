@@ -1,0 +1,39 @@
+services:
+  # The FastAPI backend (backend_cat) — the API the Netlify frontend talks to.
+  - type: web
+    name: lender-match-engine-api
+    runtime: python
+    rootDir: backend_cat
+    plan: free
+    buildCommand: "pip install -e . && playwright install --with-deps chromium"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_PATH
+        value: firebase-service-account.json
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+  # Same daily job as the Windows Task Scheduler entry it replaces — see
+  # app/scrape_ambak_rates.py's module docstring for the Ambak ToS context
+  # this was built under. Runs on Render's own infrastructure, so it's no
+  # longer affected by anything on a local machine (antivirus, sleep, etc.).
+  # NOTE: Render's Cron Jobs may require a paid plan — check your current
+  # Render plan/pricing before relying on this running for free.
+  - type: cron
+    name: scrape-ambak-rates
+    runtime: python
+    rootDir: backend_cat
+    plan: free
+    buildCommand: "pip install -e . && playwright install --with-deps chromium"
+    schedule: "30 0 * * *" # 00:30 UTC = 6:00 AM IST, matching the original local schedule
+    startCommand: "python -m app.scrape_ambak_rates"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.7"
