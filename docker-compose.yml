@@ -1,0 +1,49 @@
+name: lender-finder
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lenderfinder
+      POSTGRES_PASSWORD: lenderfinder
+      POSTGRES_DB: lender_finder
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lenderfinder -d lender_finder"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://lenderfinder:lenderfinder@postgres:5432/lender_finder
+      CORS_ORIGINS: http://localhost:3000
+    volumes:
+      - ./backend/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    volumes:
+      - ./frontend/app:/app/app
+      - ./frontend/components:/app/components
+      - ./frontend/features:/app/features
+      - ./frontend/lib:/app/lib
+      - ./frontend/public:/app/public
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

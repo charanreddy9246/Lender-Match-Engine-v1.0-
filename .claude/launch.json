@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "frontend_cat",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend_cat", "run", "dev"],
+      "port": 3001
+    },
+    {
+      "name": "excel-app-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/hima7/OneDrive/Desktop/project/EXCELA~1/frontend", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}
